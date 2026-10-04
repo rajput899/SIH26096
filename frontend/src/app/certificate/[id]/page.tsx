@@ -1,0 +1,8 @@
+'use client';
+import {useInterface} from '../../../components/InterfaceLanguage';
+
+import {use,useEffect,useState} from 'react';
+type Certificate={id:string;display_name:string;activity:string;date:string;score:number;total:number;status:string;wording:string};
+export default function CertificatePage({params}:{params:Promise<{id:string}>}){
+ const {ui}=useInterface();
+const {id}=use(params);const [data,setData]=useState<Certificate|null>(null);const [message,setMessage]=useState('Verifying completion…');useEffect(()=>{fetch(`/api/archive/certificates/${id}`,{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error('Certificate unavailable or its supporting activity is no longer approved.');setData(await r.json());setMessage('Completion verified by the archive.');}).catch(e=>setMessage(e.message));},[id]);return <main className="page"><p role="status">{ui(message)}</p>{data&&<><section className="certificate"><p className="eyebrow">{ui("Dr. B. R. Ambedkar Digital Heritage Archive")}</p><h1>{data.wording}</h1><p>{ui("Presented to")}</p><h2>{data.display_name}</h2><p>{ui("For completing ")}{data.activity}</p><p>{ui("Score: ")}{data.score} {ui(" / ")}{data.total}</p><p>{new Date(data.date).toLocaleDateString()}</p><p>{ui("Verification ID: ")}{data.id}</p><p>{ui("This confirms completion of an archive learning activity. It is not academic credit, government accreditation or official endorsement.")}</p></section><a className="button" href={`/api/archive/certificates/${id}/download`} download>{ui("Download printable certificate")}</a><p>{ui("The download is an HTML document. Open it in your browser and choose Print → Save as PDF if needed.")}</p></>}</main>;}

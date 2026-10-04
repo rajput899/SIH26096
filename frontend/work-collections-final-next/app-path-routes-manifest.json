@@ -1,0 +1,18 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/ai/page": "/ai",
+  "/api/archive/[...path]/route": "/api/archive/[...path]",
+  "/api/health/route": "/api/health",
+  "/archive/[id]/page": "/archive/[id]",
+  "/archive/page": "/archive",
+  "/certificate/[id]/page": "/certificate/[id]",
+  "/experience/[topic]/page": "/experience/[topic]",
+  "/experience/page": "/experience",
+  "/leaderboard/page": "/leaderboard",
+  "/page": "/",
+  "/quiz/[id]/page": "/quiz/[id]",
+  "/speeches/page": "/speeches",
+  "/staff/page": "/staff",
+  "/system/page": "/system"
+}

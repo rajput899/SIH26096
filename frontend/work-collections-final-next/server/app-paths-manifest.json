@@ -1,0 +1,18 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/ai/page": "app/ai/page.js",
+  "/api/archive/[...path]/route": "app/api/archive/[...path]/route.js",
+  "/api/health/route": "app/api/health/route.js",
+  "/archive/[id]/page": "app/archive/[id]/page.js",
+  "/archive/page": "app/archive/page.js",
+  "/certificate/[id]/page": "app/certificate/[id]/page.js",
+  "/experience/[topic]/page": "app/experience/[topic]/page.js",
+  "/experience/page": "app/experience/page.js",
+  "/leaderboard/page": "app/leaderboard/page.js",
+  "/page": "app/page.js",
+  "/quiz/[id]/page": "app/quiz/[id]/page.js",
+  "/speeches/page": "app/speeches/page.js",
+  "/staff/page": "app/staff/page.js",
+  "/system/page": "app/system/page.js"
+}

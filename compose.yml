@@ -1,0 +1,134 @@
+name: sih26096
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Run python scripts/init_env.py first}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Generate a local password with scripts/init_env.py}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  qdrant:
+    image: qdrant/qdrant:v1.17.0
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  ollama:
+    image: ollama/ollama:0.17.7
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_NO_CLOUD: "1"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: [CMD, ollama, list]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build: ./backend
+    volumes:
+      - archive_data:/app/archive
+      # Serve reviewed workspace code and additive migrations with the existing image.
+      - ./backend/app:/app/app:ro
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      BHASHINI_UDYAT_KEY: ${BHASHINI_UDYAT_KEY:-${Udyat_Key:-}}
+      BHASHINI_INFERENCE_KEY: ${BHASHINI_INFERENCE_KEY:-${Inference:-}}
+      BHASHINI_USER_ID: ${BHASHINI_USER_ID:-}
+      BHASHINI_PIPELINE_ID: ${BHASHINI_PIPELINE_ID:-}
+      BHASHINI_TRANSLATION_SERVICE_ID: ${BHASHINI_TRANSLATION_SERVICE_ID:-bhashini/iiith/nmt-all}
+      TRANSLATION_TIMEOUT_SECONDS: ${TRANSLATION_TIMEOUT_SECONDS:-20}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      CERTIFICATE_PUBLIC_URL: ${CERTIFICATE_PUBLIC_URL:-http://localhost:3000}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_GENERATION_MODEL: ${OLLAMA_GENERATION_MODEL:-}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-}
+      RESEARCH_COLLECTION: ${RESEARCH_COLLECTION:-verified_archive_v1}
+      GENERATION_TIMEOUT_SECONDS: ${GENERATION_TIMEOUT_SECONDS:-45}
+      HEALTH_TIMEOUT_SECONDS: ${HEALTH_TIMEOUT_SECONDS:-3}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      ollama:
+        condition: service_started
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=12)"]
+      interval: 15s
+      timeout: 13s
+      retries: 8
+      start_period: 15s
+
+  frontend:
+    build: ./frontend
+    # Development server must serve the current workspace, including after Docker restarts.
+    volumes:
+      - ./frontend/src:/app/src:ro
+    environment:
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8000}
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
+
+  worker:
+    build: ./backend
+    command: [python, -m, app.worker]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-}
+      RESEARCH_COLLECTION: ${RESEARCH_COLLECTION:-verified_archive_v1}
+      ARCHIVE_ROOT: /app/archive
+    volumes:
+      - archive_data:/app/archive:ro
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  ollama_data:
+  archive_data:
+
+

@@ -1,0 +1,64 @@
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules/
+**/.next/
+**/*.tsbuildinfo
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/pytest-cache-files-*/
+**/.ruff_cache/
+**/test-results/
+**/playwright-report/
+work/
+outputs/
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js
+.next/
+**/.next/
+
+# Build/cache
+work/
+**/work/
+.cache/
+**/.cache/
+.turbo/
+**/.turbo/
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Logs
+*.log
+
+# Large media / datasets
+Dataset/Br. Ambedkar/videos/
+
+# Database dumps
+*.dump
+*.sql
+
+# OS
+.DS_Store
+Thumbs.db
+Dataset/Br. Ambedkar/videos/
+
+Dataset/Br. Ambedkar/videos/
+
+Dataset/Br. Ambedkar/videos/*.mp4
